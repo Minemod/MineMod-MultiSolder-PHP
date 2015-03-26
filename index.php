@@ -22,6 +22,17 @@ $config['solders'] = array(
     'tpm' => 'http://solder.endermedia.com/'
 );
 
+$config['modpacks'] = array(
+    'minemod-network',
+    'simplify-for-minecraft',
+    'steves-galaxy',
+    'realm-of-mianite',
+    'a-rogues-journey',
+    'the-1710-pack',
+    'dev-ills-modernized',
+    '7-dayz-to-mine'
+);
+
 $config['selfurl'] = 'http://151.80.159.35/';
 
 class SolderRequest {
@@ -96,14 +107,20 @@ $service->get('/modpack/?', function () {
     foreach($config['solders'] as $solderName=>$solder) {
         $solderStores[$solderName] = new SolderStore(new SolderRequest($solder));
         $solderStores[$solderName]->populateModpacks();
+        foreach($solderStores[$solderName]->modpacks as $ref=>$modpack) {
+            if(!in_array($modpack['name'], $config['modpacks'])) {
+                unset($solderStores[$solderName]->modpacks[$ref]);
+            }
+            //print_r($modpack);
+        }
         $combinedModpacks = array_merge_recursive($combinedModpacks, $solderStores[$solderName]->modpacks);
     }
-
+    
     echo json_encode(array(
         'modpacks'  =>  $combinedModpacks,
         'mirror_url'=>  $config['selfurl']
     ));
-
+    
 });
 
 $service->get('/modpack/:slug/?', function ($slug) {
